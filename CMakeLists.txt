@@ -14,6 +14,7 @@ set(LIBRARY_SOURCES
     src/corelib/proc.c
     src/corelib/handle.c
     src/corelib/hist.c
+    src/corelib/log.c
 )
 
 # Create a library from the specified sources

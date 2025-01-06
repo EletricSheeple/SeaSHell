@@ -9,6 +9,10 @@
 
 int execution_loop(char *input_buffer, int input_buffer_size);
 
+void insert_char(char *str, char ch, int pos);
+
+void delete_char(char *str, int pos);
+
 int main() {
   const int DEFAULT_INPUT_BUFFER_SIZE = 16;
 
@@ -20,6 +24,7 @@ int main() {
     perror("calloc");
     return STAT_MEMALLOCERR;
   }
+
   terminal_mode_switch(0);
 
   init_history();
@@ -35,7 +40,7 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
   const int DEFAULT_INPUT_BUFFER_SIZE = input_buffer_size;
 
   int buffer_index = 0;
-  int cursor_index = buffer_index;
+  int cursor_index = 0;
   int buffer_narg = 0;
   char current_char;
   bool display_handle = true;
@@ -56,7 +61,7 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
 
     switch (current_char) {
     case ASCII_ETX: {
-      // This does nothing at all, even tho it was supposed to...
+      putchar(ASCII_LF);
       return STAT_SUCCESS;
     }
     case ASCII_CR: {
@@ -77,20 +82,22 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
     case '\033': {
       // Check for escape sequence
       char seq[2];
-      if (read(STDIN_FILENO, &seq[0], 1) != 1) break;
-      if (read(STDIN_FILENO, &seq[1], 1) != 1) break;
+      if (read(STDIN_FILENO, &seq[0], 1) != 1)
+        break;
+      if (read(STDIN_FILENO, &seq[1], 1) != 1)
+        break;
 
       if (seq[0] == '[') {
         if (seq[1] == 'D') { // Left Arrow
-          if (cursor_index > 0) {
+          if (cursor_index < buffer_index) {
             printf("\033[D"); // Move the cursor to the left
-            --cursor_index;
-            }
+            cursor_index++;
+          }
         }
         if (seq[1] == 'C') { // Right Arrow
-          if (cursor_index < buffer_index) {
-            printf("\033[C"); // Move the cursor to the right 
-            cursor_index++;
+          if (cursor_index > 0) {
+            printf("\033[C"); // Move the cursor to the right
+            cursor_index--;
           }
         }
 
@@ -105,16 +112,31 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
           history_index++;
 
           char *cmd = get_history(history_index);
+
+          while (input_buffer_size <= strlen(cmd)) {
+            input_buffer_size =
+                (int)(input_buffer_size * DEFAULT_BUFFER_GROWTH_RATE);
+
+            char *tmp = realloc(input_buffer, input_buffer_size);
+            if (tmp == NULL) {
+              perror("realloc");
+              free(input_buffer);
+              return STAT_MEMALLOCERR;
+            }
+
+            input_buffer = tmp;
+          }
+
           if (cmd != NULL) {
             strncpy(input_buffer, cmd, input_buffer_size - 1);
             input_buffer[input_buffer_size - 1] = '\0';
-            cursor_index = buffer_index = strlen(input_buffer);
+            buffer_index = strlen(input_buffer);
+            cursor_index = 0;
             printf("%s", input_buffer);
           } else {
             history_index--;
           }
-        }
-        else if (seq[1] == 'B') { // Down arrow
+        } else if (seq[1] == 'B') { // Down arrow
           // Clear current line
           while (buffer_index > 0) {
             printf("\b \b");
@@ -124,6 +146,21 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
           history_index--;
           if (history_index >= 0) {
             char *cmd = get_history(history_index);
+
+            while (input_buffer_size <= strlen(cmd)) {
+              input_buffer_size =
+                  (int)(input_buffer_size * DEFAULT_BUFFER_GROWTH_RATE);
+
+              char *tmp = realloc(input_buffer, input_buffer_size);
+              if (tmp == NULL) {
+                perror("realloc");
+                free(input_buffer);
+                return STAT_MEMALLOCERR;
+              }
+
+              input_buffer = tmp;
+            }
+
             if (cmd != NULL) {
               strncpy(input_buffer, cmd, input_buffer_size - 1);
               input_buffer[input_buffer_size - 1] = '\0';
@@ -144,12 +181,14 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
     case ASCII_DEL: {
       // Backspace
       if (buffer_index > 0) {
-        printf("\b \b");
-        fflush(stdout);
-        
-        // Deleting char from buffer
-        input_buffer[--buffer_index] = '\x00';
+        delete_char(input_buffer, ((buffer_index - cursor_index) - 1));
+        buffer_index--;
       }
+      printf("\r\033[2C\033[K%s", input_buffer);
+      if (cursor_index > 0) {
+        printf("\033[%dD", cursor_index);
+      }
+      fflush(stdout);
 
       break;
     }
@@ -178,23 +217,35 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
     default: {
       if (buffer_index >= input_buffer_size) {
         // Buffer is too small, will resize it now
-        /* The > 0 check is needed because buffer_index is set to 0
-         * after ASCII_LF.*/
         input_buffer_size =
             (int)(input_buffer_size * DEFAULT_BUFFER_GROWTH_RATE);
         // casting the result to int to avoid issues with realloc
 
-        input_buffer = realloc(input_buffer, input_buffer_size);
-        if (input_buffer == NULL) {
+        char *temp = realloc(input_buffer, input_buffer_size);
+        if (temp == NULL) {
           perror("realloc");
-          break;
+          free(input_buffer);
+          return STAT_MEMALLOCERR;
         }
+
+        input_buffer = temp;
       }
 
-      input_buffer[buffer_index++] = current_char;
-      cursor_index = buffer_index;
+      // Dynamically insert the character into the string
+      insert_char(input_buffer, current_char,
+                  ((buffer_index++) - cursor_index));
+      // input_buffer[(buffer_index++) - cursor_index] = current_char;
 
-      putchar(current_char);
+      /* Moving the cursor to the start of the string
+       * Then moving it twice to the left (to avoid overwriting the prompt
+       * string)
+       * Print the input buffer Moving the cursor back to it's
+       * original position */
+      // TODO: Remove the hardcoding of the prompt length
+      printf("\r\033[2C%s", input_buffer);
+      if (cursor_index > 0) {
+        printf("\033[%dD", cursor_index);
+      }
       fflush(stdout);
       break;
     }
@@ -202,4 +253,40 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
   }
 
   return STAT_SUCCESS;
+}
+
+void insert_char(char *str, char ch, int pos) {
+  int len = strlen(str);
+
+  // Ensure the position is valid
+  if (pos < 0 || pos > len) {
+    printf("Invalid position!\n");
+    return;
+  }
+
+  // Shift characters to the right to make space for the new character
+  for (int i = len; i >= pos; i--) {
+    str[i + 1] = str[i]; // Move each character one position to the right
+  }
+
+  // Insert the new character at the specified position
+  str[pos] = ch;
+
+  // Null-terminate the string
+  str[len + 1] = '\0';
+}
+
+void delete_char(char *str, int pos) {
+  int len = strlen(str);
+
+  // Ensure the position is valid
+  if (pos < 0 || pos >= len) {
+    return;
+  }
+
+  /* Shift characters to the left starting from the position after the one to be
+   * deleted */
+  for (int i = pos; i < len; i++) {
+    str[i] = str[i + 1]; // Move each character one position to the left
+  }
 }

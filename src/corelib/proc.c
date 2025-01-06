@@ -11,12 +11,12 @@ int proc_manager(char *buffer) {
    * Takes a command string and handles execution via fork/exec
    * Handles built-in commands like cd and exit directly
    * For external commands, forks and executes in child process
-   * 
+   *
    * Params:
    *   buffer: Null-terminated command string to execute
    * Returns:
    *   STAT_SUCCESS on successful execution
-   *   STAT_CHDIRERR on cd command failure 
+   *   STAT_CHDIRERR on cd command failure
    *   STAT_FORKERR on fork failure
    *   STAT_EXECERR on exec failure */
 
@@ -39,7 +39,11 @@ int proc_manager(char *buffer) {
   expand(fields);
 
   if (strcmp(fields[0], "exit") == 0) {
-    exit(0);
+    // FIXME: Bad way to quit the shell
+    // it doesn't restore the terminal's defaults
+    // as well as not freeing allocated memory
+    printf("Use ^C");
+    // exit(0);
   } else if (strcmp(fields[0], "cd") == 0) {
     if (fields[1] == NULL) {
       // Will make this go to `~` eventually
@@ -53,7 +57,7 @@ int proc_manager(char *buffer) {
     return STAT_SUCCESS;
   } else if (strcmp(fields[0], "export") == 0) {
     // Set an env var
-    setenv(fields[1],fields[2], 1);
+    setenv(fields[1], fields[2], 1);
     return STAT_SUCCESS;
   }
 

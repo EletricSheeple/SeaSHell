@@ -1,4 +1,3 @@
-
 #include "../include/status.h"
 #include <pwd.h>
 #include <stdio.h>
@@ -66,24 +65,6 @@ int expand(char *buffer[]) {
         if (buffer[i] == NULL) {
           return STAT_MEMALLOCERR;
         }
-      }
-    }
-    // Handle $HOME expansion
-    else if (strcmp(current_token, "$HOME") == 0) {
-      char *homeDir = getenv("HOME");
-      if (homeDir != NULL) {
-        buffer[i] = strdup(homeDir);
-        if (buffer[i] == NULL) {
-          return STAT_MEMALLOCERR;
-        }
-      }
-    }
-    // Handle $USER expansion
-    else if (strcmp(current_token, "$USER") == 0) {
-      char *user = pw->pw_name;
-      buffer[i] = strdup(user);
-      if (buffer[i] == NULL) {
-        return STAT_MEMALLOCERR;
       }
     }
     // Handle general environment variable expansion like $VAR

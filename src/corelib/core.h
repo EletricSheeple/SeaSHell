@@ -75,4 +75,8 @@ char *get_history(int index);
  */
 int free_history(void);
 
+typedef enum { INFO, ERROR, FAILURE, DEBUG } LogLevel;
+
+void log_message(LogLevel level, const char *fmt, ...);
+
 #endif // !_CORE_H_
