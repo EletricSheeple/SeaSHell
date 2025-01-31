@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.10)
 # Set the project name
 project(SeaSHell VERSION 1.0.0 LANGUAGES C)
 
+# Set the default build type to Debug (if not specified)
+set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
+
 # Create a directory for binaries
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin/corelib)
@@ -33,3 +36,11 @@ target_link_libraries(SeaSHell PRIVATE core)
 
 # Set output directories for the library
 set_target_properties(core PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBRARY_OUTPUT_PATH})
+
+# If building in Debug mode, add the debugging flags
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  add_compile_options(-g)  # For GCC/Clang
+  # For MSVC (Windows), you might want to use:
+  # add_compile_options(/Zi)
+endif()
+

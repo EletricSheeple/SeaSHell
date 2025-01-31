@@ -32,7 +32,7 @@ int proc_manager(char *buffer) {
 
   char *fields[word_count + 1];
 
-  split(buffer, fields);
+  split(buffer, fields, " \t\n");
 
   fields[word_count + 1] = NULL;
 
@@ -57,7 +57,16 @@ int proc_manager(char *buffer) {
     return STAT_SUCCESS;
   } else if (strcmp(fields[0], "export") == 0) {
     // Set an env var
-    setenv(fields[1], fields[2], 1);
+    if (fields[2] != NULL) {
+      // export KEY value
+      setenv(fields[1], fields[2], 1);
+    } else {
+      // export KEY=value
+      char *tmp[2]; // key and value
+      split(fields[1], tmp, "=");
+
+      setenv(tmp[0], tmp[1], 1);
+    }
     return STAT_SUCCESS;
   }
 

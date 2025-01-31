@@ -16,7 +16,7 @@ int terminal_mode_switch(int mode);
  * @param dest Array to store resulting tokens
  * @return Number of tokens found on success, -1 on error
  */
-int split(char *buffer, char *dest[]);
+int split(char *buffer, char *dest[], char *delim);
 
 /* Shell expansion functions */
 /**
@@ -25,6 +25,18 @@ int split(char *buffer, char *dest[]);
  * @return STAT_SUCCESS on success, -1 on error
  */
 int expand(char *buffer[]);
+
+// Gets the type of a token
+
+typedef enum TokenType {
+  RESKEYWORD, // Special keywords
+  SYMBOL,     // Pre-determined (check TokenType)
+  COMMAND,    // Program names (if exists in PATH)
+  ARGUMENT,   // Program parameters (if suffixed by a dash)
+  STRING,     // Anything enclosed by quotes (if in-between quotes)
+  UT,         // Unrecognize Token (i.e. none of the above)
+} TokenType;
+int* get_type(char *buffer[]);
 
 /**
  * Get current user information from password database
