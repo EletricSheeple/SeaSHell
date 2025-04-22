@@ -44,5 +44,5 @@ make
 After a successful build, the compiled binary will be located in the `build/bin/` directory. To run the shell, simply execute:
 
 ```shell
-./build/bin/SeaSHell
+./build/bin/SeaSHell # Assuming you are at the root of the project
 ```
