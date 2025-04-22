@@ -13,6 +13,8 @@ void insert_char(char *str, char ch, int pos);
 
 void delete_char(char *str, int pos);
 
+int STAT_GLOBAL; // Used to communicate between functions
+
 int main() {
   const int DEFAULT_INPUT_BUFFER_SIZE = 16;
 
@@ -32,7 +34,11 @@ int main() {
 
   terminal_mode_switch(1);
   free(input_buffer);
-  return STAT_SUCCESS;
+  if (STAT_GLOBAL == STAT_VEXIT) {
+    return STAT_SUCCESS; /* VEXIT is not an error, 
+                              but returning !0 would be treated as such */
+  }
+  return STAT_GLOBAL;
 }
 
 int execution_loop(char *input_buffer, int input_buffer_size) {
@@ -203,7 +209,10 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
         add_history(input_buffer);
         history_index = -1; // Reset history navigation
         // Process the command
-        proc_manager(input_buffer);
+        STAT_GLOBAL = proc_manager(input_buffer);
+        if (STAT_GLOBAL != STAT_SUCCESS) {
+          return STAT_GLOBAL;
+        }
       }
 
       // Reset buffer state

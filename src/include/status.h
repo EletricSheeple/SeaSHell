@@ -3,6 +3,7 @@
 
 /* Success status */
 #define STAT_SUCCESS 0
+#define STAT_VEXIT 1           /* Virtual exit, nothing is wrong, but shell should exit */
 
 /* Memory and resource errors */
 #define STAT_MEMALLOCERR -1    /* Memory allocation failure */

@@ -39,11 +39,7 @@ int proc_manager(char *buffer) {
   expand(fields);
 
   if (strcmp(fields[0], "exit") == 0) {
-    // FIXME: Bad way to quit the shell
-    // it doesn't restore the terminal's defaults
-    // as well as not freeing allocated memory
-    printf("Use ^C");
-    // exit(0);
+    return STAT_VEXIT;
   } else if (strcmp(fields[0], "cd") == 0) {
     if (fields[1] == NULL) {
       // Will make this go to `~` eventually
