@@ -35,7 +35,7 @@ int main() {
   terminal_mode_switch(1);
   free(input_buffer);
   if (STAT_GLOBAL == STAT_VEXIT) {
-    return STAT_SUCCESS; /* VEXIT is not an error, 
+    return STAT_SUCCESS; /* VEXIT is not an error,
                               but returning !0 would be treated as such */
   }
   return STAT_GLOBAL;
@@ -66,18 +66,20 @@ int execution_loop(char *input_buffer, int input_buffer_size) {
     }
 
     switch (current_char) {
-    case ASCII_ETX: {
+    case ASCII_ETX:
+    case ASCII_EOF:
       putchar(ASCII_LF);
-      return STAT_SUCCESS;
-    }
+      // Reset buffer state
+      memset(input_buffer, 0, input_buffer_size);
+      cursor_index = buffer_index = 0;
+      input_buffer_size = DEFAULT_INPUT_BUFFER_SIZE;
+      display_handle = true;
+      break;
     case ASCII_CR: {
       break;
     }
     case ASCII_TAB: {
       break;
-    }
-    case ASCII_EOF: {
-      return STAT_SUCCESS;
     }
     case ASCII_FF: {
       printf("\033c");
