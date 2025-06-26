@@ -42,13 +42,15 @@ int proc_manager(char *buffer) {
     return STAT_VEXIT;
   } else if (strcmp(fields[0], "cd") == 0) {
     if (fields[1] == NULL) {
-      // Will make this go to `~` eventually
-      fprintf(stderr, "No path specified.\n");
-      return STAT_CHDIRERR;
+      char *tmp[2] = {"~", NULL};
+      expand(tmp);
+      chdir(tmp[0]);
+      return STAT_SUCCESS;
     }
+
     if (chdir(fields[1]) != 0) {
       perror("cd");
-      return STAT_CHDIRERR;
+      return STAT_SUCCESS;
     }
     return STAT_SUCCESS;
   } else if (strcmp(fields[0], "export") == 0) {
