@@ -50,7 +50,7 @@ int proc_manager(char *buffer) {
 
     if (chdir(fields[1]) != 0) {
       perror("cd");
-      return STAT_SUCCESS;
+      return STAT_CHDIRERR;
     }
     return STAT_SUCCESS;
   } else if (strcmp(fields[0], "export") == 0) {
