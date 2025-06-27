@@ -1,5 +1,6 @@
 #ifndef _CORE_H_
 #define _CORE_H_
+#include <unistd.h>
 
 /* Terminal handling functions */
 /**
@@ -17,6 +18,16 @@ int terminal_mode_switch(int mode);
  * @return Number of tokens found on success, -1 on error
  */
 int split(char *buffer, char *dest[], char *delim);
+
+typedef struct {
+  char *key;
+  char *val;
+} Alias;
+
+Alias alias_list[] = { // Global alias list
+  {NULL, NULL} // Null Alias to signal end of list
+}; // No defaults
+int alias_count = 0; // Global alias count
 
 /* Shell expansion functions */
 /**

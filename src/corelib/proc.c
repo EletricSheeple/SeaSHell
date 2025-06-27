@@ -1,5 +1,6 @@
 #include "../include/status.h"
 #include "core.h"
+#include "core.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -64,6 +65,23 @@ int proc_manager(char *buffer) {
       split(fields[1], tmp, "=");
 
       setenv(tmp[0], tmp[1], 1);
+    }
+    return STAT_SUCCESS;
+  } else if (strcmp(fields[0], "alias") == 0) {
+    // Set an alias
+    if (fields[2] != NULL) {
+      // alias KEY value
+      alias_list[alias_count].key = strdup(fields[1]);
+      alias_list[alias_count].val = strdup(fields[2]);
+      alias_count++;
+    } else {
+      // alias KEY=value
+      char *tmp[2]; // key and value
+      split(fields[1], tmp, "=");
+
+      alias_list[alias_count].key = strdup(tmp[0]);
+      alias_list[alias_count].val = strdup(tmp[1]);
+      alias_count++;
     }
     return STAT_SUCCESS;
   }

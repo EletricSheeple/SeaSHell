@@ -18,6 +18,7 @@ set(LIBRARY_SOURCES
     src/corelib/handle.c
     src/corelib/hist.c
     src/corelib/log.c
+    src/corelib/alias.c
 )
 
 # Create a library from the specified sources

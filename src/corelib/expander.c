@@ -83,6 +83,16 @@ int expand(char *buffer[]) {
     } else if (current_token[0] == '$') {
       expand_variable(current_token, buffer, i);
     }
+
+    // Checking against alias list
+    for (int ii = 0; alias_list[ii].key != NULL; ii++) {
+      if (strcmp(current_token, alias_list[ii].key) == 0) {
+        buffer[i] = strdup(alias_list[ii].val);
+        if (buffer[i] == NULL) {
+          return STAT_MEMALLOCERR;
+        }
+      }
+    }
   }
 
   return STAT_SUCCESS;

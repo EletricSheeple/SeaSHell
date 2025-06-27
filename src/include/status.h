@@ -25,4 +25,8 @@
 /* History errors */
 #define STAT_HISTORYERR -11    /* History operation failure */
 
+/* Alias errors */
+#define STAT_ALIASERR -12      /* Alias operation failure */
+#define STAT_ALIASNULL -13     /* Alias key or value is NULL */
+
 #endif // !_STATUS_H_
